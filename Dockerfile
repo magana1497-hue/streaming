@@ -6,7 +6,7 @@ RUN mvn dependency:go-offline -B -q
 
 COPY src ./src
 RUN mvn package -DskipTests -B -q -P deploy && \
-    mv target/*.war target/app.war
+    mv target/streaming-1.0-*.war target/app.war
 
 FROM eclipse-temurin:11-jre-alpine
 WORKDIR /app
