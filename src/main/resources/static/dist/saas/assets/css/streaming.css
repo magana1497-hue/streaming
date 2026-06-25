@@ -1,0 +1,481 @@
+/* ========== ESTILOS GENERALES ========== */
+body {
+    background-color: #f8f9fa;
+}
+
+.wrapper {
+    min-height: 100vh;
+    padding-bottom: 20px;
+}
+
+.container-fluid {
+    padding-bottom: 10px;
+}
+
+/* ========== HEADER MEJORADO ========== */
+.page-title-box {
+    padding: 10px 0;              /* Era 20px, ahora 10px */
+    margin-bottom: 15px;          /* Era 20px, ahora 15px */
+    border-bottom: 2px solid #e9ecef;
+}
+
+.page-title-left {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 5px;          /* Era 15px, ahora 8px */
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 0.25rem;
+}
+
+.logo-img {
+    max-height: 70px;  /* Era 45px, ahora 70px */
+    height: auto;
+}
+
+.logo-img-large {
+    max-height: 70px;
+    height: auto;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
+
+.employee-info {
+    /* Ya no necesita flex-direction: column */
+}
+
+.employee-info .row {
+    width: 100%;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #6571ff;
+}
+
+.info-item i {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.info-text {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+/* ========== CARD ========== */
+.card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, #6571ff 0%, #4c5cdb 100%);
+}
+
+.card-title-custom {
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+}
+
+.card-body {
+    padding: 2rem;
+    padding-bottom: 1.5rem;
+}
+
+/* ========== RELOJ ========== */
+.clock-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6 !important;
+    border-radius: 12px;
+}
+
+.clock-label {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+}
+
+.clock-display {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+}
+
+.clock-date {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.clock-time {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #6571ff;
+    letter-spacing: 3px;
+}
+
+/* ========== FORMULARIO ========== */
+.office-label {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.custom-select {
+    border-radius: 10px;
+    padding: 12px 16px;
+    border: 2px solid #dee2e6;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.custom-select:focus {
+    border-color: #6571ff;
+    box-shadow: 0 0 0 0.2rem rgba(101, 113, 255, 0.25);
+}
+
+/* ========== BOTONES ========== */
+.btn-custom {
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.btn-custom:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-custom i {
+    font-size: 1.3rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6571ff 0%, #4c5cdb 100%);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+}
+
+/* Ajuste específico para los botones en el formulario */
+.row.g-2 {
+    margin-top: 1rem !important;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+}
+
+.row.g-2 > div {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .clock-time {
+        font-size: 2.2rem;
+    }
+
+    .btn-custom {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+
+    .info-text {
+        font-size: 0.9rem;
+    }
+}
+
+/* Móviles */
+@media (max-width: 576px) {
+    .page-title-box {
+        padding: 15px 0;
+    }
+
+    .logo-img {
+        max-height: 40px;
+    }
+
+    .employee-info {
+        gap: 8px;
+    }
+
+    .info-item {
+        padding: 6px 10px;
+    }
+
+    .info-item i {
+        font-size: 1rem;
+    }
+
+    .info-text {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+
+    .card-title-custom {
+        font-size: 1.1rem;
+    }
+
+    .clock-container {
+        padding: 1rem !important;
+    }
+
+    .clock-label {
+        font-size: 0.8rem;
+    }
+
+    .clock-date {
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+    }
+
+    .clock-time {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+    }
+
+    .office-label {
+        font-size: 0.95rem;
+    }
+
+    .custom-select {
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+
+    .btn-custom {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+    }
+
+    .btn-custom {
+        margin-bottom: 10px;
+    }
+
+    .btn-custom i {
+        font-size: 1.1rem;
+    }
+
+    /* Botones en columna completa en móvil */
+    .row.g-2 {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .row.g-2 > div {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-bottom: 0.5rem !important;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 375px) {
+    .logo-img {
+        max-height: 35px;
+    }
+
+    .info-text {
+        font-size: 0.8rem;
+    }
+
+    .clock-time {
+        font-size: 1.5rem;
+    }
+
+    .btn-custom {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Ajustes para evitar overflow */
+.topbar {
+    height: auto !important;
+}
+
+.page-title-left {
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* ========== SWEETALERT FIX ========== */
+.swal2-popup {
+    font-size: 1rem !important;
+    padding: 1.5rem !important;
+}
+
+.swal2-icon {
+    margin: 1rem auto 1.5rem !important;
+    width: 5rem !important;
+    height: 5rem !important;
+}
+
+.swal2-title {
+    font-size: 1.5rem !important;
+    padding: 0 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+.swal2-html-container {
+    font-size: 1rem !important;
+    padding: 0 1rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.swal2-actions {
+    margin-top: 1rem !important;
+    gap: 0.5rem !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+    font-size: 1rem !important;
+    padding: 0.65rem 1.5rem !important;
+    margin: 0 0.25rem !important;
+}
+
+@media (max-width: 576px) {
+    .swal2-popup {
+        width: 90% !important;
+        padding: 1.25rem !important;
+    }
+
+    .swal2-icon {
+        width: 4rem !important;
+        height: 4rem !important;
+        margin: 0.75rem auto 1rem !important;
+    }
+
+    .swal2-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .swal2-html-container {
+        font-size: 0.9rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .swal2-actions {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .swal2-confirm,
+    .swal2-cancel {
+        width: 100% !important;
+        margin: 0.25rem 0 !important;
+    }
+}
+
+/* ========== PRELOADER ========== */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    z-index: 99999 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bouncing-loader {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+}
+
+.bouncing-loader > div {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #6571ff;
+    animation: bouncing-loader 0.6s infinite alternate;
+}
+
+.bouncing-loader > div:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.bouncing-loader > div:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bouncing-loader {
+    to {
+        opacity: 0.1;
+        transform: translateY(-16px);
+    }
+}
+
+/* ========== TRANSICIÓN SUAVE ENTRE PÁGINAS ========== */
+body {
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+}
+
+body.page-loading {
+    opacity: 0;
+}
+
+/* ========== FIX FOUC - CARGA INMEDIATA ========== */
+.logo-img-large {
+    max-height: 70px !important;
+    height: auto !important;
+    width: auto !important;
+    display: block !important;
+}
+
+.logo-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}

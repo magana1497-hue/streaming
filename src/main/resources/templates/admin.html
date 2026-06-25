@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{layout/layout :: head}">
+</head>
+<body>
+<div class="wrapper">
+    <header th:replace="~{layout/header :: header}"></header>
+    <aside th:replace="~{layout/menu :: aside}"></aside>
+
+    <div class="content-page">
+        <div class="content">
+            <div class="container-fluid">
+
+                <!-- Page Title -->
+                <div class="row mt-3 mb-2">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div>
+                                <h4 class="mb-0">
+                                    <i class="mdi mdi-broadcast me-1 text-danger"></i>
+                                    Panel de Transmisión
+                                </h4>
+                                <p class="text-muted small mb-0">Administra el streaming en vivo o por enlace</p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary px-3 py-2 fs-6" id="status-badge">
+                                    <i class="mdi mdi-circle-outline me-1"></i>DESCONECTADO
+                                </span>
+                                <span class="badge bg-info px-3 py-2 fs-6" id="viewer-badge">
+                                    <i class="mdi mdi-eye me-1"></i>
+                                    Espectadores: <span id="viewer-count-num">0</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- ===== Left: Controls ===== -->
+                    <div class="col-xl-4 col-lg-5">
+
+                        <!-- URL Mode -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="mdi mdi-link-variant me-1 text-primary"></i>
+                                    Modo Enlace
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">
+                                    Transmite un video desde una URL pública (mp4, webm, m3u8&hellip;)
+                                </p>
+                                <div class="mb-2">
+                                    <input type="url" class="form-control" id="video-url"
+                                           placeholder="https://ejemplo.com/video.mp4"/>
+                                </div>
+                                <button class="btn btn-primary w-100" id="btn-url" disabled>
+                                    <i class="mdi mdi-play-circle me-1"></i> Transmitir Enlace
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live Mode -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="mdi mdi-monitor-share me-1 text-danger"></i>
+                                    Modo Pantalla en Vivo
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">
+                                    Captura tu pantalla y audio del sistema.
+                                    Usar <strong>Chrome o Edge</strong> y marcar
+                                    <em>"Compartir audio del sistema"</em> en el diálogo.
+                                </p>
+                                <div class="alert alert-warning py-1 px-2 small mb-2" role="alert">
+                                    <i class="mdi mdi-lock me-1"></i>
+                                    Requiere <strong>HTTPS</strong> o <code>localhost</code>.
+                                </div>
+                                <button class="btn btn-danger w-100" id="btn-live" disabled>
+                                    <i class="mdi mdi-cast me-1"></i> Compartir Pantalla
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stop & Logout -->
+                        <div class="card">
+                            <div class="card-body">
+                                <button class="btn btn-dark w-100 mb-2" id="btn-stop" disabled>
+                                    <i class="mdi mdi-stop-circle me-1"></i> Detener Transmisión
+                                </button>
+                                <a th:href="@{/logout}" class="btn btn-outline-secondary w-100">
+                                    <i class="mdi mdi-logout me-1"></i> Cerrar Sesión
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Viewer link -->
+                        <div class="card">
+                            <div class="card-body">
+                                <p class="text-muted small mb-1 fw-semibold">
+                                    <i class="mdi mdi-share-variant me-1"></i>Enlace para espectadores:
+                                </p>
+                                <div class="input-group">
+                                    <input type="text" class="form-control form-control-sm"
+                                           id="viewer-link" readonly/>
+                                    <button class="btn btn-outline-secondary btn-sm" id="btn-copy-link"
+                                            type="button" title="Copiar enlace">
+                                        <i class="mdi mdi-content-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ===== Right: Preview ===== -->
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="card" style="min-height: 460px;">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="mdi mdi-television-play me-1"></i> Vista Previa
+                                </h5>
+                                <span class="badge bg-danger d-none" id="live-badge-preview">
+                                    <span class="blink-dot"></span> EN VIVO
+                                </span>
+                            </div>
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center"
+                                 style="background:#12121c; border-radius:0 0 4px 4px; min-height:400px;">
+                                <div id="preview-placeholder" class="text-center text-white-50">
+                                    <i class="mdi mdi-television-off" style="font-size:4rem;"></i>
+                                    <p class="mt-2 mb-0">Sin transmisión activa</p>
+                                    <small>Conectado al servidor de señalización&hellip;</small>
+                                </div>
+                                <video id="admin-preview" autoplay muted playsinline
+                                       style="display:none; max-width:100%; max-height:400px;
+                                              border-radius:6px; object-fit:contain;">
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== IPTV: Xtream Codes ===== -->
+                <div class="row mt-1">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <h5 class="card-title mb-0">
+                                        <i class="mdi mdi-television-classic me-1 text-warning"></i>
+                                        IPTV &mdash; Xtream Codes
+                                    </h5>
+                                    <div id="iptv-status-wrap" style="display:none">
+                                        <span class="badge px-2 py-1" id="iptv-status-badge">
+                                            <i class="mdi mdi-circle me-1"></i>
+                                            <span id="iptv-status-text">Desconectado</span>
+                                        </span>
+                                        <span class="text-muted small ms-2" id="iptv-expiry"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Credentials form -->
+                                    <div class="col-lg-3 col-md-4">
+                                        <p class="text-muted small mb-2 fw-semibold">Credenciales del proveedor</p>
+                                        <div class="mb-2">
+                                            <input type="url" class="form-control form-control-sm"
+                                                   id="iptv-server" placeholder="http://proveedor.com:8080"/>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="text" class="form-control form-control-sm"
+                                                   id="iptv-user" placeholder="Usuario"/>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input type="password" class="form-control form-control-sm"
+                                                   id="iptv-pass" placeholder="Contraseña"/>
+                                        </div>
+                                        <button class="btn btn-warning btn-sm w-100" id="btn-iptv-connect">
+                                            <i class="mdi mdi-connection me-1"></i> Conectar / Probar
+                                        </button>
+                                        <div id="iptv-error" class="alert alert-danger py-1 px-2 small mt-2"
+                                             style="display:none" role="alert"></div>
+                                    </div>
+
+                                    <!-- Channel browser -->
+                                    <div class="col-lg-9 col-md-8">
+                                        <div id="iptv-browser" style="display:none">
+                                            <div class="row mb-2 g-2 align-items-center">
+                                                <div class="col-sm-5">
+                                                    <select class="form-select form-select-sm" id="iptv-categories">
+                                                        <option value="">— Todas las categorías —</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-5">
+                                                    <input type="search" class="form-control form-control-sm"
+                                                           id="iptv-search" placeholder="🔍 Buscar canal…"/>
+                                                </div>
+                                                <div class="col-sm-2 text-muted small" id="iptv-channel-count"></div>
+                                            </div>
+                                            <!-- Channel list -->
+                                            <div id="iptv-channel-list"
+                                                 style="max-height:320px; overflow-y:auto;
+                                                        border:1px solid #dee2e6; border-radius:6px;">
+                                                <div class="text-center text-muted p-4 small" id="iptv-list-placeholder">
+                                                    Selecciona una categoría para ver los canales
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="iptv-loading" style="display:none"
+                                             class="text-center text-muted py-4">
+                                            <div class="spinner-border spinner-border-sm me-2"></div>
+                                            Cargando&hellip;
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /IPTV row -->
+
+            </div><!-- /container-fluid -->
+        </div><!-- /content -->
+
+        <footer th:replace="~{layout/footer :: footer}"></footer>
+    </div><!-- /content-page -->
+</div><!-- /wrapper -->
+
+<!-- Config vars for JS -->
+<span id="ws-config"    th:data-ws-url="@{/ws/signal}"      style="display:none"></span>
+<span id="ctx-config"   th:data-viewer-url="@{/ver}"         style="display:none"></span>
+<span id="iptv-config"  th:data-stream-base="@{/stream/live/}"
+                        th:data-api-base="@{/admin/iptv}"    style="display:none"></span>
+
+<style>
+    .blink-dot {
+        display: inline-block;
+        width: 8px; height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        margin-right: 4px;
+        animation: blink 1s step-start infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* IPTV channel list rows */
+    .iptv-channel-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
+    }
+    .iptv-channel-row:last-child { border-bottom: none; }
+    .iptv-channel-row:hover { background: #f8f9fa; }
+    .iptv-channel-logo {
+        width: 36px; height: 36px;
+        object-fit: contain;
+        border-radius: 4px;
+        background: #eee;
+        flex-shrink: 0;
+    }
+    .iptv-channel-name { flex: 1; font-size: 0.875rem; }
+    .btn-transmit-iptv { white-space: nowrap; }
+</style>
+
+<script th:src="@{/js/hls.min.js}"></script>
+<script th:src="@{/js/admin.js}"></script>
+</body>
+</html>

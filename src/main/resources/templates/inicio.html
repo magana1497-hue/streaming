@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/layout :: head}">
+</head>
+<body>
+	<div class="wrapper">
+		<header th:replace="~{layout/header :: header}"></header>
+		<aside th:replace="~{layout/menu :: aside}"></aside>
+
+		<div class="content-page">
+			<div class="content">
+				<div class="container-fluid text-center mt-5">
+					<div class="card p-5 shadow-sm">
+						<h1 class="display-4 text-primary">¡Hola Mundo!</h1>
+						<p class="lead">El proyecto ha sido renombrado a <strong>Streaming</strong> y se han eliminado todas las entidades antiguas.</p>
+						<hr class="my-4">
+						<p class="text-muted">Este es el layout y el tema del proyecto base.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<footer th:replace="~{layout/footer :: footer}"></footer>
+	</div>
+</body>
+</html>

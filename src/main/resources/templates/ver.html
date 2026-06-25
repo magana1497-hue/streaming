@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <title>Streaming ISP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" th:href="@{/dist/saas/assets/images/isp_icon.png}">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0d0d14;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #player-wrap {
+            width: 100%;
+            max-width: 1280px;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #top-bar {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #live-badge {
+            display: none;
+            background: #dc3545;
+            color: #fff;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .blink-dot {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: blink 1s step-start infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        #player {
+            display: none;
+            width: 100%;
+            max-height: 80vh;
+            background: #000;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        #waiting-screen {
+            text-align: center;
+            padding: 24px;
+        }
+
+        #status-icon { font-size: 3.5rem; display: block; margin-bottom: 12px; }
+        #status-text { color: #aaa; font-size: 1rem; }
+
+        #btn-unmute {
+            display: none;
+            margin-top: 14px;
+            padding: 8px 24px;
+            background: #e83e8c;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+        #btn-unmute:hover { background: #c0316f; }
+
+        #footer-bar {
+            position: fixed;
+            bottom: 8px;
+            left: 0; right: 0;
+            text-align: center;
+            color: #444;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="player-wrap">
+    <div id="top-bar">
+        <span id="live-badge"><span class="blink-dot"></span>EN VIVO</span>
+    </div>
+
+    <div id="waiting-screen">
+        <span id="status-icon">📡</span>
+        <p id="status-text">Esperando transmisión&hellip;</p>
+        <button id="btn-unmute">🔊 Activar sonido</button>
+    </div>
+
+    <video id="player" controls playsinline></video>
+</div>
+
+<div id="footer-bar">
+    Instituto Salvadoreño de Pensiones &bull; Sistema Streaming
+</div>
+
+<!-- Config for JS -->
+<span id="ws-config" th:data-ws-url="@{/ws/signal}" style="display:none"></span>
+
+<script th:src="@{/js/hls.min.js}"></script>
+<script th:src="@{/js/viewer.js}"></script>
+</body>
+</html>

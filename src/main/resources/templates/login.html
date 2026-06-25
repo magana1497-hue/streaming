@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <title>Streaming ISP - Acceso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" th:href="@{/dist/saas/assets/images/isp_icon.png}">
+    <link th:href="@{/dist/saas/assets/css/app-saas.min.css}" rel="stylesheet" type="text/css"/>
+    <link th:href="@{/dist/saas/assets/css/icons.min.css}" rel="stylesheet" type="text/css"/>
+    <script th:src="@{/dist/saas/assets/js/hyper-config.js}"></script>
+</head>
+<body class="authentication-bg">
+<div class="account-pages pt-2 pt-sm-5 pb-4 pb-sm-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xxl-4 col-lg-5">
+                <div class="card">
+                    <div class="card-header pt-4 pb-4 text-center bg-primary">
+                        <a th:href="@{/}">
+                            <img th:src="@{/dist/saas/assets/images/logo-isp.png}" alt="ISP Logo" height="60">
+                        </a>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="text-center mb-3">
+                            <h4 class="text-dark-50 fw-bold mt-0">Panel Administrador</h4>
+                            <p class="text-muted mb-0">Sistema de Streaming</p>
+                        </div>
+
+                        <div th:if="${param.error}" class="alert alert-danger alert-dismissible" role="alert">
+                            <i class="mdi mdi-alert-circle me-1"></i>
+                            Usuario o contraseña incorrectos.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success alert-dismissible" role="alert">
+                            <i class="mdi mdi-check-circle me-1"></i>
+                            Sesión cerrada correctamente.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <form th:action="@{/login}" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Usuario</label>
+                                <input class="form-control" type="text" id="username" name="username"
+                                       placeholder="Ingrese su usuario" autocomplete="username" required/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input class="form-control" type="password" id="password" name="password"
+                                       placeholder="Ingrese su contraseña" autocomplete="current-password" required/>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="mdi mdi-login me-1"></i> Ingresar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="text-center mt-2">
+                    <p class="text-muted small">&copy; Instituto Salvadoreño de Pensiones</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/dist/saas/assets/js/vendor.min.js}"></script>
+<script th:src="@{/dist/saas/assets/js/app.min.js}"></script>
+</body>
+</html>
