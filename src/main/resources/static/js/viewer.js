@@ -146,7 +146,7 @@
 
         if (isHls) {
             if (window.Hls && Hls.isSupported()) {
-                currentHls = new Hls({ enableWorker: true, lowLatencyMode: true });
+                currentHls = new Hls({ enableWorker: true, lowLatencyMode: false });
                 currentHls.loadSource(src);
                 currentHls.attachMedia(player);
                 currentHls.on(Hls.Events.MANIFEST_PARSED, function () {

@@ -125,6 +125,10 @@ public class StreamProxyController {
             HttpResponse<InputStream> upstream = httpClient.send(
                     upstreamReq, HttpResponse.BodyHandlers.ofInputStream());
 
+            if (upstream.statusCode() >= 400) {
+                return ResponseEntity.status(502).build();
+            }
+
             String contentType = upstream.headers()
                     .firstValue("Content-Type")
                     .orElse(OCTET_TYPE)
