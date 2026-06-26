@@ -170,11 +170,13 @@ public class SignalingHandler extends TextWebSocketHandler {
         }
     }
 
-    // Thread-safe send
     private void sendJson(WebSocketSession session, Map<String, Object> data) throws Exception {
         synchronized (session) {
-            if (session.isOpen()) {
+            if (!session.isOpen()) return;
+            try {
                 session.sendMessage(new TextMessage(mapper.writeValueAsString(data)));
+            } catch (java.io.IOException ignored) {
+                // Session closed between isOpen() check and send — normal under load
             }
         }
     }
