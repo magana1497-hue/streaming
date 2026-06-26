@@ -341,7 +341,13 @@
         if (isHls) {
             if (window.Hls && Hls.isSupported()) {
                 console.log('[Video] using HLS.js');
-                currentHls = new Hls({ enableWorker: true, lowLatencyMode: false });
+                currentHls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: false,
+                    maxBufferLength: 10,
+                    maxMaxBufferLength: 20,
+                    maxBufferSize: 20 * 1000 * 1000
+                });
                 currentHls.loadSource(src);
                 currentHls.attachMedia(player);
 

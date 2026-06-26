@@ -656,20 +656,21 @@
         console.log('[IPTV] transmit requested — channel:', channelName, 'id:', streamId);
         console.log('[IPTV] proxy URL (app):', src);
         if (directUrl) console.log('[IPTV] direct URL (VLC):', directUrl);
-        showOverlay('Conectando canal IPTV…', channelName);
-        stopLiveStream();
 
-        iptvPreviewChannel(src, channelName, function (stream) {
-            console.log('[IPTV] stream captured — sending live mode to viewers');
-            localStream = stream;
-            send({ type: 'mode', mode: 'live' });
-            setStatus('IPTV: ' + channelName, 'warning', 'mdi-television-classic');
-            showLiveBadge(false);
-            hideOverlay();
-            if (btnStop) btnStop.disabled = false;
-            if (btnUrl)  btnUrl.disabled  = true;
-            if (btnLive) btnLive.disabled = true;
-        });
+        stopLiveStream();
+        showOverlay('Cargando canal IPTV…', channelName);
+
+        // Cargar preview en admin (sin capturar — solo para monitoreo local)
+        iptvPreviewChannel(src, channelName, null);
+
+        // Viewers cargan HLS directamente desde el proxy — sin WebRTC, sin lag extra
+        send({ type: 'mode', mode: 'url', src: src });
+        setStatus('IPTV: ' + channelName, 'warning', 'mdi-television-classic');
+        showLiveBadge(false);
+        hideOverlay();
+        if (btnStop) btnStop.disabled = false;
+        if (btnUrl)  btnUrl.disabled  = true;
+        if (btnLive) btnLive.disabled = true;
     }
 
     function iptvPreviewChannel(src, channelName, onCapture) {
@@ -700,7 +701,13 @@
 
         if (window.Hls && Hls.isSupported()) {
             console.log('[IPTV] using HLS.js to load stream');
-            iptvHls = new Hls({ enableWorker: true, lowLatencyMode: false });
+            iptvHls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: false,
+                maxBufferLength: 10,
+                maxMaxBufferLength: 20,
+                maxBufferSize: 20 * 1000 * 1000
+            });
             iptvHls.loadSource(src);
             iptvHls.attachMedia(adminPreview);
             iptvHls.on(Hls.Events.MANIFEST_PARSED, function (evt, data) {
