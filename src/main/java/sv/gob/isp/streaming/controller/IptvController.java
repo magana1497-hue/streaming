@@ -2,6 +2,8 @@ package sv.gob.isp.streaming.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +17,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Endpoints del panel IPTV — todos bajo /admin/iptv/** (protegidos por hasRole('ADMIN')).
- */
 @RestController
 @RequestMapping("/admin/iptv")
 public class IptvController {
+
+    private static final Logger log = LoggerFactory.getLogger(IptvController.class);
 
     @Autowired
     private IptvConfigService config;
@@ -49,16 +50,22 @@ public class IptvController {
                     .body("{\"error\":\"Faltan campos: serverUrl, username, password\"}");
         }
 
+        log.info("IPTV configure — server: {} user: {}", serverUrl.trim(), username.trim());
         config.configure(serverUrl.trim(), username.trim(), password.trim());
 
+        long t0 = System.currentTimeMillis();
         try {
             String raw = iptvService.testConnection();
-            // Intentar extraer status y expiry para guardarlo en el servicio
+            long elapsed = System.currentTimeMillis() - t0;
+
             try {
                 JsonNode root = mapper.readTree(raw);
                 JsonNode userInfo = root.path("user_info");
                 String status = userInfo.path("status").asText("Unknown");
                 String expDate = userInfo.path("exp_date").asText(null);
+                int maxConnections = userInfo.path("max_connections").asInt(0);
+                int activeConnections = userInfo.path("active_cons").asInt(0);
+                log.info("IPTV connect OK in {}ms — status: {} exp: {} connections: {}/{}", elapsed, status, expDate, activeConnections, maxConnections);
                 config.setAccountStatus(status);
                 if (expDate != null && !expDate.equals("null") && !expDate.isBlank()) {
                     try {
@@ -71,12 +78,13 @@ public class IptvController {
                         config.setAccountExpiry(expDate);
                     }
                 }
-            } catch (Exception ignored) { /* si el JSON es inesperado, no falla */ }
+            } catch (Exception ignored) { }
 
             config.setConnected(true);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(raw);
 
         } catch (Exception e) {
+            log.error("IPTV connect FAILED in {}ms — server: {} user: {} error: {}", System.currentTimeMillis() - t0, serverUrl.trim(), username.trim(), e.getMessage());
             config.setConnected(false);
             return ResponseEntity.status(502)
                     .body("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
@@ -97,41 +105,42 @@ public class IptvController {
         return ResponseEntity.ok(info);
     }
 
-    /**
-     * Lista de categorías de canales en vivo (JSON array del proveedor).
-     */
     @GetMapping(value = "/categories", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> categories() {
         if (!config.isConnected()) {
+            log.warn("IPTV categories requested but provider not connected");
             return ResponseEntity.status(401)
                     .body("{\"error\":\"Proveedor no conectado\"}");
         }
+        log.info("IPTV fetching live categories");
+        long t0 = System.currentTimeMillis();
         try {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(iptvService.getLiveCategories());
+            String body = iptvService.getLiveCategories();
+            log.info("IPTV categories OK in {}ms — {} bytes", System.currentTimeMillis() - t0, body.length());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body);
         } catch (Exception e) {
+            log.error("IPTV categories FAILED in {}ms — {}", System.currentTimeMillis() - t0, e.getMessage());
             return ResponseEntity.status(502)
                     .body("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
         }
     }
 
-    /**
-     * Canales en vivo, opcionalmente filtrados por categoría.
-     * ?category_id=N
-     */
     @GetMapping(value = "/streams", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> streams(
             @RequestParam(value = "category_id", required = false) String categoryId) {
         if (!config.isConnected()) {
+            log.warn("IPTV streams requested but provider not connected");
             return ResponseEntity.status(401)
                     .body("{\"error\":\"Proveedor no conectado\"}");
         }
+        log.info("IPTV fetching live streams — category: {}", categoryId != null ? categoryId : "all");
+        long t0 = System.currentTimeMillis();
         try {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(iptvService.getLiveStreams(categoryId));
+            String body = iptvService.getLiveStreams(categoryId);
+            log.info("IPTV streams OK in {}ms — {} bytes", System.currentTimeMillis() - t0, body.length());
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(body);
         } catch (Exception e) {
+            log.error("IPTV streams FAILED in {}ms — category: {} error: {}", System.currentTimeMillis() - t0, categoryId, e.getMessage());
             return ResponseEntity.status(502)
                     .body("{\"error\":\"" + escapeJson(e.getMessage()) + "\"}");
         }

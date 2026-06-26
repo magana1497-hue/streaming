@@ -1,5 +1,7 @@
 package sv.gob.isp.streaming.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -19,6 +21,8 @@ import java.net.SocketTimeoutException;
 
 @Service
 public class IptvService {
+
+    private static final Logger log = LoggerFactory.getLogger(IptvService.class);
 
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ISPStreaming/1.0";
 
@@ -45,8 +49,11 @@ public class IptvService {
         factory.setConnectTimeout(connectTimeout);
         factory.setReadTimeout(readTimeout);
         if (proxyHost != null && !proxyHost.isBlank()) {
+            log.info("IptvService using HTTP proxy {}:{}", proxyHost, proxyPort);
             Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
             factory.setProxy(proxy);
+        } else {
+            log.info("IptvService using direct connection (no proxy) — connectTimeout={}ms readTimeout={}ms", connectTimeout, readTimeout);
         }
         restTemplate = new RestTemplate(factory);
     }
@@ -74,19 +81,27 @@ public class IptvService {
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private String get(String url) {
+        log.debug("IPTV GET {}", url);
+        long t0 = System.currentTimeMillis();
         HttpHeaders headers = new HttpHeaders();
         headers.set("User-Agent", USER_AGENT);
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         try {
             ResponseEntity<String> response =
                     restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            long elapsed = System.currentTimeMillis() - t0;
             if (!response.getStatusCode().is2xxSuccessful()) {
+                log.warn("IPTV GET {} — HTTP {} in {}ms", url, response.getStatusCodeValue(), elapsed);
                 throw new RuntimeException("El proveedor respondió con HTTP " + response.getStatusCodeValue());
             }
+            int bodyLen = response.getBody() != null ? response.getBody().length() : 0;
+            log.debug("IPTV GET {} — HTTP {} in {}ms, {} bytes", url, response.getStatusCodeValue(), elapsed, bodyLen);
             return response.getBody();
         } catch (ResourceAccessException e) {
+            log.error("IPTV GET {} — network error in {}ms: {}", url, System.currentTimeMillis() - t0, e.getMessage());
             throw new RuntimeException(friendlyNetworkError(e), e);
         } catch (RestClientException e) {
+            log.error("IPTV GET {} — client error in {}ms: {}", url, System.currentTimeMillis() - t0, e.getMessage());
             throw new RuntimeException("Error al comunicarse con el proveedor: " + e.getMessage(), e);
         }
     }

@@ -127,7 +127,16 @@
                                 </span>
                             </div>
                             <div class="card-body d-flex flex-column align-items-center justify-content-center"
-                                 style="background:#12121c; border-radius:0 0 4px 4px; min-height:400px;">
+                                 style="background:#12121c; border-radius:0 0 4px 4px; min-height:400px; position:relative;">
+                                <!-- Loading overlay -->
+                                <div id="stream-loading-overlay"
+                                     style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.78);
+                                            z-index:20; border-radius:0 0 4px 4px;"
+                                     class="d-flex flex-column align-items-center justify-content-center gap-3">
+                                    <div class="spinner-border text-warning" style="width:3rem;height:3rem;"></div>
+                                    <span id="stream-loading-msg" class="text-white fw-semibold fs-6 text-center px-3"></span>
+                                    <small id="stream-loading-sub" class="text-white-50 text-center px-3"></small>
+                                </div>
                                 <div id="preview-placeholder" class="text-center text-white-50">
                                     <i class="mdi mdi-television-off" style="font-size:4rem;"></i>
                                     <p class="mt-2 mb-0">Sin transmisión activa</p>
