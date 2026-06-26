@@ -549,6 +549,33 @@
         });
     }
 
+    // ── URL directa del proveedor (para VLC u otros players) ─────────────────
+    function iptvDirectUrl(streamId) {
+        var srv = iptvServer ? iptvServer.value.trim().replace(/\/$/, '') : '';
+        var usr = iptvUser   ? iptvUser.value.trim()   : '';
+        var pwd = iptvPass   ? iptvPass.value.trim()   : '';
+        if (!srv || !usr || !pwd || !streamId) return null;
+        return srv + '/live/' + encodeURIComponent(usr) + '/' + encodeURIComponent(pwd) + '/' + streamId + '.m3u8';
+    }
+
+    var _copyToast = null;
+    function showCopyToast(msg) {
+        if (_copyToast) clearTimeout(_copyToast);
+        var existing = document.getElementById('iptv-copy-toast');
+        if (!existing) {
+            existing = document.createElement('div');
+            existing.id = 'iptv-copy-toast';
+            existing.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);' +
+                'background:#198754;color:#fff;padding:8px 20px;border-radius:8px;font-size:0.875rem;' +
+                'z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.3);pointer-events:none;opacity:0;' +
+                'transition:opacity .2s;';
+            document.body.appendChild(existing);
+        }
+        existing.textContent = msg;
+        existing.style.opacity = '1';
+        _copyToast = setTimeout(function () { existing.style.opacity = '0'; }, 2500);
+    }
+
     // ── Renderizar canales ────────────────────────────────────────────────────
     function iptvRenderChannels(channels) {
         if (!iptvChList) return;
@@ -591,9 +618,27 @@
                 iptvTransmit(this.dataset.streamId, this.dataset.channelName);
             });
 
+            var btnCopy = document.createElement('button');
+            btnCopy.className = 'btn btn-sm btn-outline-secondary';
+            btnCopy.title = 'Copiar enlace m3u8 (para VLC u otro reproductor)';
+            btnCopy.innerHTML = '<i class="mdi mdi-link-variant"></i>';
+            btnCopy.dataset.streamId = id;
+            btnCopy.dataset.channelName = name;
+            btnCopy.addEventListener('click', function () {
+                var directUrl = iptvDirectUrl(this.dataset.streamId);
+                if (!directUrl) { alert('Primero conecta el proveedor IPTV.'); return; }
+                console.log('[IPTV] copy URL — channel:', this.dataset.channelName, 'url:', directUrl);
+                navigator.clipboard.writeText(directUrl).then(function () {
+                    showCopyToast('✓ Enlace copiado — pégalo en VLC');
+                }).catch(function () {
+                    prompt('Copia esta URL:', directUrl);
+                });
+            });
+
             row.appendChild(img);
             row.appendChild(nm);
             row.appendChild(btn);
+            row.appendChild(btnCopy);
             frag.appendChild(row);
         });
 
@@ -607,7 +652,10 @@
     function iptvTransmit(streamId, channelName) {
         if (!streamId) return;
         var src = streamBase + streamId + '.m3u8';
-        console.log('[IPTV] transmit requested — channel:', channelName, 'id:', streamId, 'src:', src);
+        var directUrl = iptvDirectUrl(streamId);
+        console.log('[IPTV] transmit requested — channel:', channelName, 'id:', streamId);
+        console.log('[IPTV] proxy URL (app):', src);
+        if (directUrl) console.log('[IPTV] direct URL (VLC):', directUrl);
         showOverlay('Conectando canal IPTV…', channelName);
         stopLiveStream();
 
