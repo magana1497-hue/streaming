@@ -9,6 +9,8 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import sv.gob.isp.streaming.service.IptvConfigService;
 import sv.gob.isp.streaming.service.ProxyTokenService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -37,6 +39,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/stream")
 public class StreamProxyController {
+
+    private static final Logger log = LoggerFactory.getLogger(StreamProxyController.class);
 
     private static final String MPEGURL_TYPE  = "application/vnd.apple.mpegurl";
     private static final String OCTET_TYPE    = "application/octet-stream";
@@ -95,6 +99,7 @@ public class StreamProxyController {
                     .header("Access-Control-Allow-Origin", "*")
                     .body(rewritten);
         } catch (Exception e) {
+            log.warn("IPTV proxy 502 — streamId={} upstream={} error={}", streamId, upstreamUrl, e.getMessage());
             return ResponseEntity.status(502).body("# Upstream error: " + e.getMessage());
         }
     }

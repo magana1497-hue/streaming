@@ -1,9 +1,21 @@
 package sv.gob.isp.streaming.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 
 @Service
 public class IptvConfigService {
+
+    @Value("${app.iptv.default.server:}")
+    private String defaultServer;
+
+    @Value("${app.iptv.default.username:}")
+    private String defaultUsername;
+
+    @Value("${app.iptv.default.password:}")
+    private String defaultPassword;
 
     private volatile String serverUrl;
     private volatile String username;
@@ -12,11 +24,22 @@ public class IptvConfigService {
     private volatile String accountStatus;
     private volatile String accountExpiry;
 
-    /** Guarda credenciales normalizando la URL base (sin / final). */
+    @PostConstruct
+    private void loadDefaults() {
+        if (defaultServer != null && !defaultServer.isBlank()
+                && defaultUsername != null && !defaultUsername.isBlank()
+                && defaultPassword != null && !defaultPassword.isBlank()) {
+            configure(defaultServer, defaultUsername, defaultPassword);
+        }
+    }
+
+    /** Guarda credenciales normalizando la URL base (sin / final, con scheme). */
     public synchronized void configure(String serverUrl, String username, String password) {
-        this.serverUrl = serverUrl != null && serverUrl.endsWith("/")
-                ? serverUrl.substring(0, serverUrl.length() - 1)
-                : serverUrl;
+        String url = serverUrl != null ? serverUrl.trim() : "";
+        if (!url.isEmpty() && !url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "http://" + url;
+        }
+        this.serverUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
         this.username = username;
         this.password = password;
         this.connected = false;

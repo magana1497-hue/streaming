@@ -17,14 +17,19 @@
     const liveBadge     = document.getElementById('live-badge');
     const statusText    = document.getElementById('status-text');
     const statusIcon    = document.getElementById('status-icon');
-    const btnUnmute     = document.getElementById('btn-unmute');
 
-    if (btnUnmute) {
-        btnUnmute.addEventListener('click', function () {
-            player.muted = false;
-            player.volume = 1;
-            btnUnmute.style.display = 'none';
-        });
+    function tryUnmute() {
+        player.muted = false;
+        player.volume = 1;
+    }
+
+    function tryFullscreen() {
+        var el = document.documentElement;
+        var fn = el.requestFullscreen
+            || el.webkitRequestFullscreen
+            || el.mozRequestFullScreen
+            || el.msRequestFullscreen;
+        if (fn) fn.call(el).catch(function () {});
     }
 
     // ── WebSocket ─────────────────────────────────────────────────────────────
@@ -103,17 +108,17 @@
             var stream = evt.streams[0];
             if (player.srcObject !== stream) {
                 player.srcObject = stream;
-                player.muted = true; // start muted to bypass autoplay policy
+                player.muted = true;
                 player.play()
                     .then(function () {
                         showPlayer();
                         showLiveBadge(true);
-                        if (btnUnmute) btnUnmute.style.display = 'inline-block';
+                        tryUnmute();
+                        tryFullscreen();
                     })
                     .catch(function () {
                         showPlayer();
                         showLiveBadge(true);
-                        if (btnUnmute) btnUnmute.style.display = 'inline-block';
                     });
             }
         };
@@ -150,13 +155,14 @@
                 currentHls.loadSource(src);
                 currentHls.attachMedia(player);
                 currentHls.on(Hls.Events.MANIFEST_PARSED, function () {
-                    player.muted = false;
-                    player.play().catch(function () {
-                        player.muted = true;
-                        player.play().then(function () {
-                            if (btnUnmute) btnUnmute.style.display = 'inline-block';
-                        });
-                    });
+                    player.muted = true;
+                    player.play()
+                        .then(function () {
+                            showPlayer();
+                            tryUnmute();
+                            tryFullscreen();
+                        })
+                        .catch(function () {});
                 });
                 currentHls.on(Hls.Events.ERROR, function (event, data) {
                     if (data.fatal) {
@@ -194,7 +200,6 @@
     function showPlayer() {
         if (waitingScreen) waitingScreen.style.display = 'none';
         if (player)        player.style.display        = 'block';
-        if (btnUnmute)     btnUnmute.style.display     = 'none'; // reset on new stream
     }
 
     function setWaiting(text, icon) {
@@ -203,10 +208,9 @@
             player.srcObject     = null;
             player.src           = '';
         }
-        if (waitingScreen) waitingScreen.style.display = 'block';
+        if (waitingScreen) waitingScreen.style.display = 'flex';
         if (statusText)    statusText.textContent      = text || 'Esperando…';
         if (statusIcon)    statusIcon.textContent      = icon || '📡';
-        if (btnUnmute)     btnUnmute.style.display     = 'none';
     }
 
     function showLiveBadge(show) {
@@ -214,5 +218,6 @@
     }
 
     // ── Init ──────────────────────────────────────────────────────────────────
+    tryFullscreen();
     connect();
 })();

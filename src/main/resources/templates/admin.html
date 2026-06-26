@@ -232,7 +232,11 @@
 <span id="ws-config"    th:data-ws-url="@{/ws/signal}"      style="display:none"></span>
 <span id="ctx-config"   th:data-viewer-url="@{/ver}"         style="display:none"></span>
 <span id="iptv-config"  th:data-stream-base="@{/stream/live/}"
-                        th:data-api-base="@{/admin/iptv}"    style="display:none"></span>
+                        th:data-api-base="@{/admin/iptv}"
+                        th:data-iptv-server="${iptvServer}"
+                        th:data-iptv-user="${iptvUsername}"
+                        th:data-iptv-pass="${iptvPassword}"
+                        style="display:none"></span>
 
 <style>
     .blink-dot {

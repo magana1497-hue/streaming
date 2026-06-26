@@ -118,10 +118,11 @@
                     var params = sender.getParameters();
                     if (!params.encodings || params.encodings.length === 0) params.encodings = [{}];
                     if (sender.track.kind === 'video') {
-                        params.encodings[0].maxBitrate           = 15 * 1024 * 1024; // 15 Mbps
+                        params.encodings[0].maxBitrate            = 30 * 1024 * 1024; // 30 Mbps
+                        params.encodings[0].maxFramerate          = 60;
                         params.encodings[0].degradationPreference = 'maintain-resolution';
                     } else {
-                        params.encodings[0].maxBitrate = 256 * 1024; // 256 kbps audio
+                        params.encodings[0].maxBitrate = 320 * 1024; // 320 kbps audio
                     }
                     sender.setParameters(params).catch(function (e) { console.warn('setParameters', e); });
                 });
@@ -182,9 +183,9 @@
         btnLive.addEventListener('click', function () {
             navigator.mediaDevices.getDisplayMedia({
                     video: {
-                        frameRate: { ideal: 30, max: 60 },
-                        width:     { ideal: window.screen.width  },
-                        height:    { ideal: window.screen.height }
+                        frameRate: { ideal: 60, max: 60 },
+                        width:     { ideal: window.screen.width,  max: window.screen.width  },
+                        height:    { ideal: window.screen.height, max: window.screen.height }
                     },
                     audio: {
                         echoCancellation: false,
@@ -193,9 +194,15 @@
                     }
                 })
                 .then(function (stream) {
-                    // Tell the encoder to prefer sharpness over smoothness (screen content mode)
                     var vt = stream.getVideoTracks()[0];
-                    if (vt) vt.contentHint = 'detail';
+                    if (vt) {
+                        vt.contentHint = 'detail';
+                        vt.applyConstraints({
+                            frameRate: { ideal: 60, max: 60 },
+                            width:     { ideal: window.screen.width  },
+                            height:    { ideal: window.screen.height }
+                        }).catch(function () {});
+                    }
                     localStream = stream;
                     showPreview(stream);
                     send({ type: 'mode', mode: 'live' });
@@ -288,6 +295,13 @@
     var iptvUser    = document.getElementById('iptv-user');
     var iptvPass    = document.getElementById('iptv-pass');
     var btnConnect  = document.getElementById('btn-iptv-connect');
+
+    // Pre-fill fields from server-side defaults (application.properties)
+    if (iptvCfgEl) {
+        if (iptvServer && iptvCfgEl.dataset.iptvServer) iptvServer.value = iptvCfgEl.dataset.iptvServer;
+        if (iptvUser   && iptvCfgEl.dataset.iptvUser)   iptvUser.value   = iptvCfgEl.dataset.iptvUser;
+        if (iptvPass   && iptvCfgEl.dataset.iptvPass)   iptvPass.value   = iptvCfgEl.dataset.iptvPass;
+    }
     var iptvBrowser = document.getElementById('iptv-browser');
     var iptvLoading = document.getElementById('iptv-loading');
     var iptvError   = document.getElementById('iptv-error');
@@ -475,37 +489,57 @@
         if (!streamId) return;
         var src = streamBase + streamId + '.m3u8';
 
-        // Detener stream previo
         stopLiveStream();
 
-        // Publicar a viewers vía WebSocket (mismo flujo que modo enlace)
-        send({ type: 'mode', mode: 'url', src: src });
-        setStatus('IPTV: ' + channelName, 'warning', 'mdi-television-classic');
-        showLiveBadge(false);
-        if (btnStop) btnStop.disabled = false;
-        if (btnUrl)  btnUrl.disabled  = true;
-        if (btnLive) btnLive.disabled = true;
-
-        // Vista previa en admin con HLS.js
-        iptvPreviewChannel(src);
+        // Cargar HLS en el video del admin, capturar como MediaStream y enviar por WebRTC
+        // (1 sola conexión al proveedor IPTV sin importar cuántos viewers haya)
+        iptvPreviewChannel(src, function (stream) {
+            localStream = stream;
+            send({ type: 'mode', mode: 'live' });
+            setStatus('IPTV: ' + channelName, 'warning', 'mdi-television-classic');
+            showLiveBadge(false);
+            if (btnStop) btnStop.disabled = false;
+            if (btnUrl)  btnUrl.disabled  = true;
+            if (btnLive) btnLive.disabled = true;
+        });
     }
 
-    function iptvPreviewChannel(src) {
-        if (adminPreview) {
-            if (iptvHls) { iptvHls.destroy(); iptvHls = null; }
-            adminPreview.srcObject = null;
-            if (window.Hls && Hls.isSupported()) {
-                iptvHls = new Hls({ enableWorker: true, lowLatencyMode: true });
-                iptvHls.loadSource(src);
-                iptvHls.attachMedia(adminPreview);
-                iptvHls.on(Hls.Events.MANIFEST_PARSED, function () { adminPreview.play(); });
-            } else if (adminPreview.canPlayType('application/vnd.apple.mpegurl')) {
-                adminPreview.src = src;
-                adminPreview.play();
-            }
-            adminPreview.style.display = 'block';
-            if (previewPH) previewPH.style.display = 'none';
+    function iptvPreviewChannel(src, onCapture) {
+        if (!adminPreview) return;
+        if (iptvHls) { iptvHls.destroy(); iptvHls = null; }
+        adminPreview.srcObject = null;
+
+        function captureAndNotify() {
+            var stream = adminPreview.captureStream
+                ? adminPreview.captureStream()
+                : adminPreview.mozCaptureStream
+                ? adminPreview.mozCaptureStream()
+                : null;
+            if (stream && onCapture) onCapture(stream);
         }
+
+        if (window.Hls && Hls.isSupported()) {
+            iptvHls = new Hls({ enableWorker: true, lowLatencyMode: false });
+            iptvHls.loadSource(src);
+            iptvHls.attachMedia(adminPreview);
+            iptvHls.on(Hls.Events.MANIFEST_PARSED, function () {
+                adminPreview.muted = true;
+                adminPreview.play()
+                    .then(captureAndNotify)
+                    .catch(function (e) { console.error('IPTV play error', e); });
+            });
+            iptvHls.on(Hls.Events.ERROR, function (evt, data) {
+                if (data.fatal) console.error('HLS fatal', data);
+            });
+        } else if (adminPreview.canPlayType('application/vnd.apple.mpegurl')) {
+            adminPreview.src = src;
+            adminPreview.muted = true;
+            adminPreview.addEventListener('playing', captureAndNotify, { once: true });
+            adminPreview.play().catch(function (e) { console.error('IPTV play error', e); });
+        }
+
+        adminPreview.style.display = 'block';
+        if (previewPH) previewPH.style.display = 'none';
     }
 
     // Destruir HLS admin al parar
