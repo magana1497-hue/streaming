@@ -81,13 +81,21 @@
     <p id="status-text">Esperando transmisión&hellip;</p>
 </div>
 
-<!-- Tap-to-play overlay (autoplay bloqueado por navegador) -->
+<!-- Tap-to-play / tap-to-fullscreen overlay -->
 <div id="tap-overlay" style="display:none; position:fixed; inset:0; z-index:15;
      background:rgba(0,0,0,0.55); cursor:pointer;
      flex-direction:column; align-items:center; justify-content:center; gap:12px;">
     <div style="font-size:4.5rem; line-height:1;">▶</div>
     <p style="color:#fff; font-size:1.1rem; font-weight:600; margin:0;">Toca para reproducir</p>
+    <p style="color:#aaa; font-size:0.82rem; margin:0;">Se abrirá en pantalla completa</p>
 </div>
+
+<!-- Fullscreen button (esquina inferior derecha) -->
+<button id="btn-fullscreen" title="Pantalla completa"
+        style="display:none; position:fixed; bottom:16px; right:16px; z-index:20;
+               background:rgba(0,0,0,0.55); border:none; border-radius:8px;
+               color:#fff; font-size:1.4rem; padding:8px 10px; cursor:pointer;
+               backdrop-filter:blur(4px); line-height:1;">⛶</button>
 
 <video id="player" playsinline></video>
 

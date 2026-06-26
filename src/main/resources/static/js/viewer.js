@@ -19,6 +19,7 @@
     const liveBadge     = document.getElementById('live-badge');
     const statusText    = document.getElementById('status-text');
     const statusIcon    = document.getElementById('status-icon');
+    const btnFullscreen = document.getElementById('btn-fullscreen');
 
     // ── Tap-to-play ───────────────────────────────────────────────────────────
     function showTapOverlay() {
@@ -34,6 +35,7 @@
         tapOverlay.addEventListener('click', function () {
             console.log('[Viewer] tap-to-play clicked');
             hideTapOverlay();
+            tryFullscreen(); // user gesture — fullscreen allowed here
             if (player) {
                 player.muted = false;
                 player.volume = 1;
@@ -43,6 +45,14 @@
                     player.play().catch(function () {});
                 });
             }
+        });
+    }
+
+    // Waiting screen click = attempt fullscreen immediately
+    if (waitingScreen) {
+        waitingScreen.addEventListener('click', function () {
+            console.log('[Viewer] waiting screen tapped — requesting fullscreen');
+            tryFullscreen();
         });
     }
 
@@ -75,12 +85,62 @@
             });
     }
 
+    // ── Fullscreen ────────────────────────────────────────────────────────────
+    function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement
+               || document.mozFullScreenElement || document.msFullscreenElement);
+    }
+
     function tryFullscreen() {
+        if (isFullscreen()) return;
         var el = document.documentElement;
         var fn = el.requestFullscreen || el.webkitRequestFullscreen
                || el.mozRequestFullScreen || el.msRequestFullscreen;
-        if (fn) fn.call(el).catch(function () {});
+        if (fn) {
+            fn.call(el).then(function () {
+                console.log('[Viewer] fullscreen entered');
+                updateFullscreenBtn();
+            }).catch(function (e) {
+                console.warn('[Viewer] fullscreen blocked (needs user gesture):', e.message);
+                updateFullscreenBtn();
+            });
+        }
     }
+
+    function exitFullscreen() {
+        var fn = document.exitFullscreen || document.webkitExitFullscreen
+               || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (fn) fn.call(document).catch(function () {});
+    }
+
+    function updateFullscreenBtn() {
+        if (!btnFullscreen) return;
+        if (isFullscreen()) {
+            btnFullscreen.textContent = '✕';
+            btnFullscreen.title = 'Salir de pantalla completa';
+        } else {
+            btnFullscreen.textContent = '⛶';
+            btnFullscreen.title = 'Pantalla completa';
+        }
+    }
+
+    // Show/hide fullscreen button only when player is visible
+    function showFullscreenBtn(visible) {
+        if (btnFullscreen) btnFullscreen.style.display = visible ? 'block' : 'none';
+    }
+
+    if (btnFullscreen) {
+        btnFullscreen.addEventListener('click', function () {
+            if (isFullscreen()) exitFullscreen();
+            else tryFullscreen();
+        });
+    }
+
+    // Sync button state when OS/browser exits fullscreen (Esc key etc.)
+    document.addEventListener('fullscreenchange', updateFullscreenBtn);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenBtn);
+    document.addEventListener('mozfullscreenchange', updateFullscreenBtn);
+    document.addEventListener('MSFullscreenChange', updateFullscreenBtn);
 
     // ── WebSocket ─────────────────────────────────────────────────────────────
     function connect() {
@@ -366,6 +426,8 @@
     function showPlayer() {
         if (waitingScreen) waitingScreen.style.display = 'none';
         if (player)        player.style.display        = 'block';
+        showFullscreenBtn(true);
+        tryFullscreen();
         console.log('[Viewer] player shown');
     }
 
@@ -374,6 +436,7 @@
         destroyHls();
         closePeer();
         hideTapOverlay();
+        showFullscreenBtn(false);
         if (player) player.style.display = 'none';
         if (waitingScreen) waitingScreen.style.display = 'flex';
         if (statusText)    statusText.textContent      = text || 'Esperando…';
@@ -386,6 +449,5 @@
 
     // ── Init ──────────────────────────────────────────────────────────────────
     console.log('[Viewer] init — wsPath:', wsPath);
-    tryFullscreen();
     connect();
 })();
